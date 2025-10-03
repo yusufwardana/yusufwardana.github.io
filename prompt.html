@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pembuat Prompt Gambar Modern</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+        }
+        .card {
+            background-color: white;
+            border-radius: 1.5rem; /* rounded-3xl */
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            transition: all 0.3s ease-in-out;
+        }
+        /* Custom focus ring */
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #4f46e5; /* indigo-600 */
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+        /* Custom file input button */
+        .file-input-label {
+            transition: all 0.2s ease-in-out;
+        }
+        .file-input-label:hover {
+            background-color: #f1f5f9; /* slate-100 */
+            border-color: #4f46e5; /* indigo-600 */
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-6 lg:p-8">
+
+    <main class="max-w-4xl mx-auto">
+        <div class="card p-6 sm:p-10">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-800 mb-2">Pembuat Prompt AI</h1>
+                <p class="text-slate-500 max-w-xl mx-auto">Dari gambar menjadi imajinasi. Unggah foto untuk mendapatkan prompt, saran gaya, dan bahkan membuat gambar baru.</p>
+            </div>
+
+            <!-- Bagian Unggah Gambar Utama -->
+            <div class="mb-6">
+                <label for="image-upload" class="file-input-label flex flex-col items-center justify-center w-full h-48 border-2 border-slate-300 border-dashed rounded-xl cursor-pointer bg-slate-50">
+                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                        <i class="fas fa-cloud-upload-alt text-4xl text-slate-400 mb-3"></i>
+                        <p class="mb-2 text-sm text-slate-500"><span class="font-semibold">Klik untuk mengunggah</span> atau seret dan lepas</p>
+                        <p class="text-xs text-slate-400">PNG, JPG, atau WEBP</p>
+                    </div>
+                    <input id="image-upload" type="file" class="hidden" accept="image/*" />
+                </label>
+                <div id="image-preview-container" class="mt-4 hidden text-center">
+                    <img id="image-preview" src="#" alt="Pratinjau Gambar Utama" class="max-h-40 rounded-lg inline-block shadow-md"/>
+                </div>
+            </div>
+
+            <!-- Tombol Generate Utama -->
+            <button id="generate-button" class="w-full bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all flex items-center justify-center gap-2">
+                <i id="button-icon" class="fas fa-lightbulb"></i>
+                <span id="button-text">Buat Prompt</span>
+                <i id="spinner" class="fas fa-spinner fa-spin hidden"></i>
+            </button>
+            
+            <div id="status-message" class="mt-4 text-center text-slate-600 hidden h-6"></div>
+
+            <!-- ======================= Bagian Output ======================= -->
+            <div id="output-section" class="mt-8 hidden space-y-8">
+                
+                <!-- Opsi & Prompt Utama -->
+                <section>
+                     <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+                        <h2 class="text-2xl font-bold text-slate-800">Hasil Prompt Anda</h2>
+                        <select id="prompt-type-select" class="w-full sm:w-auto p-2 border border-slate-300 rounded-lg">
+                            <option value="detailed">Prompt Detail</option>
+                            <option value="short">Prompt Ringkas</option>
+                        </select>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Kolom Bahasa Inggris -->
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-slate-700 font-medium">Prompt (Inggris)</label>
+                                <button id="copy-en-button" class="bg-slate-200 text-slate-600 py-1 px-3 rounded-lg text-sm hover:bg-slate-300 transition-colors flex items-center gap-1.5"><i class="fas fa-copy"></i>Salin</button>
+                            </div>
+                            <textarea id="english-prompt-textarea" class="w-full p-3 border border-slate-300 rounded-lg bg-slate-50" readonly></textarea>
+                        </div>
+                        <!-- Kolom Bahasa Indonesia -->
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-slate-700 font-medium">Prompt (Indonesia)</label>
+                                <div class="flex space-x-2">
+                                    <button id="translate-button" class="bg-slate-200 text-slate-600 py-1 px-3 rounded-lg text-sm hover:bg-slate-300 transition-colors flex items-center gap-1.5"><i class="fas fa-language"></i>Terjemahkan</button>
+                                    <button id="copy-id-button" class="bg-slate-200 text-slate-600 py-1 px-3 rounded-lg text-sm hover:bg-slate-300 transition-colors flex items-center gap-1.5"><i class="fas fa-copy"></i>Salin</button>
+                                </div>
+                            </div>
+                            <textarea id="indonesian-prompt-textarea" class="w-full p-3 border border-slate-300 rounded-lg bg-white"></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Prompt Negatif & Pembuatan Gambar -->
+                <section>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-slate-700 mb-2">Prompt Negatif (Opsional)</h3>
+                             <textarea id="english-negative-prompt-textarea" class="w-full p-3 border border-slate-300 rounded-lg bg-white" placeholder="e.g., ugly, blurry, watermark..."></textarea>
+                             <button id="generate-negative-prompt-button" class="w-full mt-2 bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-slate-700 transition-all flex items-center justify-center gap-2">✨ Buat Saran</button>
+                        </div>
+                        <div>
+                             <h3 class="text-lg font-semibold text-slate-700 mb-2">Buat Gambar Anda</h3>
+                             <div class="bg-green-50 border-2 border-dashed border-green-300 p-4 rounded-lg text-center">
+                                 <p class="text-green-800 text-sm mb-3">Siap untuk berkreasi? Ubah prompt Anda menjadi gambar!</p>
+                                 <button id="generate-image-button" class="w-full bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-green-700 transition-all flex items-center justify-center gap-2">
+                                    <i class="fas fa-magic-sparkles"></i>
+                                    <span id="generate-image-button-text">Buat Gambar</span>
+                                    <i id="generate-image-spinner" class="fas fa-spinner fa-spin hidden"></i>
+                                </button>
+                             </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Saran Gaya -->
+                <section id="style-suggestion-section" class="hidden">
+                    <h3 class="text-lg font-semibold text-slate-700 mb-3">✨ Coba Gaya Ini</h3>
+                    <div id="style-buttons" class="flex flex-wrap gap-2">
+                        <!-- Tombol gaya akan ditambahkan di sini oleh JS -->
+                    </div>
+                </section>
+                
+                <!-- Pengeditan Cerdas -->
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-800 mb-4">Pengeditan Cerdas</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <input type="text" id="gender-select" placeholder="Jenis Kelamin..." class="w-full p-3 border border-slate-300 rounded-lg">
+                        <input type="text" id="hair-input" placeholder="Gaya Rambut..." class="w-full p-3 border border-slate-300 rounded-lg">
+                        <input type="text" id="clothing-input" placeholder="Pakaian..." class="w-full p-3 border border-slate-300 rounded-lg">
+                        <input type="text" id="pants-input" placeholder="Celana..." class="w-full p-3 border border-slate-300 rounded-lg">
+                        <input type="text" id="shoes-input" placeholder="Sepatu..." class="w-full p-3 border border-slate-300 rounded-lg">
+                        <input type="text" id="accessories-input" placeholder="Aksesori..." class="w-full p-3 border border-slate-300 rounded-lg">
+                    </div>
+                    <div class="mt-4 flex items-center">
+                        <input type="checkbox" id="facial-reference-checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        <label for="facial-reference-checkbox" class="ml-2 block text-sm text-slate-800">Pertahankan Referensi Wajah</label>
+                    </div>
+                    <button id="update-prompt-button" class="w-full mt-4 bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-indigo-700 transition-all flex items-center justify-center gap-2">
+                        <i class="fas fa-wand-magic-sparkles"></i> Perbarui Prompt
+                    </button>
+                </section>
+
+            </div> <!-- /end output-section -->
+        </div>
+    </main>
+
+    <!-- Modal untuk Gambar yang Dihasilkan -->
+    <div id="image-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-full overflow-auto relative">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-slate-800">Gambar Anda</h2>
+                    <button id="close-modal-button" class="text-slate-400 hover:text-slate-800 text-2xl">&times;</button>
+                </div>
+                <div id="modal-content" class="flex items-center justify-center min-h-[300px] bg-slate-100 rounded-lg">
+                    <div id="modal-spinner" class="text-center hidden p-8">
+                        <i class="fas fa-spinner fa-spin text-4xl text-indigo-600"></i>
+                        <p class="mt-4 text-slate-600">Sedang melukis mahakarya Anda...</p>
+                    </div>
+                    <img id="generated-image" src="" alt="Generated Image" class="max-w-full max-h-[70vh] rounded-lg hidden"/>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const imageUploadInput = document.getElementById('image-upload');
+            const imagePreview = document.getElementById('image-preview');
+            const imagePreviewContainer = document.getElementById('image-preview-container');
+            const generateButton = document.getElementById('generate-button');
+            const buttonText = document.getElementById('button-text');
+            const buttonIcon = document.getElementById('button-icon');
+            const spinner = document.getElementById('spinner');
+            const statusMessage = document.getElementById('status-message');
+            const outputSection = document.getElementById('output-section');
+
+            const promptTypeSelect = document.getElementById('prompt-type-select');
+            const englishPromptTextarea = document.getElementById('english-prompt-textarea');
+            const indonesianPromptTextarea = document.getElementById('indonesian-prompt-textarea');
+            const copyEnButton = document.getElementById('copy-en-button');
+            const copyIdButton = document.getElementById('copy-id-button');
+            const translateButton = document.getElementById('translate-button');
+            
+            const styleSuggestionSection = document.getElementById('style-suggestion-section');
+            const styleButtons = document.getElementById('style-buttons');
+            
+            const englishNegativePromptTextarea = document.getElementById('english-negative-prompt-textarea');
+            const generateNegativePromptButton = document.getElementById('generate-negative-prompt-button');
+
+            const generateImageButton = document.getElementById('generate-image-button');
+            const generateImageButtonText = document.getElementById('generate-image-button-text');
+            const generateImageSpinner = document.getElementById('generate-image-spinner');
+            
+            const updatePromptButton = document.getElementById('update-prompt-button');
+            const genderSelect = document.getElementById('gender-select');
+            const hairInput = document.getElementById('hair-input');
+            const clothingInput = document.getElementById('clothing-input');
+            const pantsInput = document.getElementById('pants-input');
+            const shoesInput = document.getElementById('shoes-input');
+            const accessoriesInput = document.getElementById('accessories-input');
+            const facialReferenceCheckbox = document.getElementById('facial-reference-checkbox');
+            
+            const imageModal = document.getElementById('image-modal');
+            const closeModalButton = document.getElementById('close-modal-button');
+            const modalSpinner = document.getElementById('modal-spinner');
+            const generatedImage = document.getElementById('generated-image');
+
+            let originalPrompts = { detailed: { en: '', id: '' }, short: { en: '', id: '' } };
+            const apiKey = "";
+            const textApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const imageApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+
+            // --- All JavaScript functions (fetchWithBackoff, translatePrompt, etc.) remain unchanged ---
+            // They are not dependent on the UI structure, so they will work perfectly with the new design.
+            
+             const fetchWithBackoff = async (url, options, retries = 5, delay = 1000) => {
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok) {
+                        if (response.status === 429 && retries > 0) {
+                            console.warn(`Too Many Requests. Retrying in ${delay}ms...`);
+                            await new Promise(res => setTimeout(res, delay));
+                            return fetchWithBackoff(url, options, retries - 1, delay * 2);
+                        }
+                        const errorData = await response.json();
+                        throw new Error(errorData.error?.message || `API error: ${response.statusText}`);
+                    }
+                    return response;
+                } catch (error) {
+                    if (retries > 0) {
+                        console.warn(`Fetch failed. Retrying in ${delay}ms...`);
+                        await new Promise(res => setTimeout(res, delay));
+                        return fetchWithBackoff(url, options, retries - 1, delay * 2);
+                    }
+                    throw error;
+                }
+            };
+
+            const translatePrompt = async (text, sourceLang, targetLang) => {
+                try {
+                    const systemPrompt = `Translate the following text from ${sourceLang} to ${targetLang}. Only output the translated text.`;
+                    const payload = {
+                        contents: [{ parts: [{ text: text }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] },
+                        generationConfig: { responseMimeType: "text/plain" }
+                    };
+                    const response = await fetchWithBackoff(textApiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+                    return result?.candidates?.[0]?.content?.parts?.[0]?.text || text;
+                } catch (error) {
+                    console.error('Translation error:', error);
+                    return text;
+                }
+            };
+            
+            const createDetailedPrompt = async (base64Data, mimeType) => {
+                 const systemPrompt = `You are a professional AI image prompt generator. Your task is to analyze the uploaded image and generate a highly detailed and specific text prompt for text-to-image models. The prompt must be in English and include a detailed subject, art style, lighting, composition, and additional details like textures, mood, and color palette. Example: "A fluffy cat with curious big eyes, wearing a tiny shimmering space helmet, joyfully floating in a vacuum. It is surrounded by twinkling stars and neon-colored planets in the distance. Art style: Ultra-realistic digital art, influenced by sci-fi film illustrations. Lighting: Soft, cool light from the stars. Composition: Cinematic wide shot, showcasing the tiny cat in the middle of a vast cosmic landscape. Details: Highly detailed fur, shimmering cosmic dust, and light trails behind the helmet." Generate a creative and unique prompt based on the image provided.`;
+                 const payload = {
+                     contents: [{ role: "user", parts: [{ inlineData: { mimeType, data: base64Data } }] }],
+                     systemInstruction: { parts: [{ text: systemPrompt }] },
+                     generationConfig: { responseMimeType: "text/plain" }
+                 };
+                 const response = await fetchWithBackoff(textApiUrl, {
+                     method: 'POST',
+                     headers: { 'Content-Type': 'application/json' },
+                     body: JSON.stringify(payload)
+                 });
+                 const result = await response.json();
+                 return result?.candidates?.[0]?.content?.parts?.[0]?.text;
+            };
+
+            const createShortPrompt = async (base64Data, mimeType) => {
+                 const systemPrompt = `You are a prompt summarizer for text-to-image models. Analyze the uploaded image and generate a single, powerful, concise, and effective prompt. The prompt should capture the core subject, style, and mood in a short phrase. Only output the refined prompt, without any additional text.`;
+                 const payload = {
+                     contents: [{ role: "user", parts: [{ inlineData: { mimeType, data: base64Data } }] }],
+                     systemInstruction: { parts: [{ text: systemPrompt }] },
+                     generationConfig: { responseMimeType: "text/plain" }
+                 };
+                 const response = await fetchWithBackoff(textApiUrl, {
+                     method: 'POST',
+                     headers: { 'Content-Type': 'application/json' },
+                     body: JSON.stringify(payload)
+                 });
+                 const result = await response.json();
+                 return result?.candidates?.[0]?.content?.parts?.[0]?.text;
+            };
+
+            const getStyleSuggestions = async (basePrompt) => {
+                styleButtons.innerHTML = '';
+                const systemPrompt = `You are an AI art director. Based on the following image prompt, suggest 4 distinct and creative art styles. Your output must be a valid JSON array of strings only. Examples: "Cinematic, hyper-detailed", "Vintage comic book art", "Impressionist oil painting", "Synthwave". Prompt: ${basePrompt}`;
+                try {
+                    const payload = {
+                        contents: [{ parts: [{ text: systemPrompt }] }],
+                        generationConfig: { responseMimeType: "application/json" }
+                    };
+                    const response = await fetchWithBackoff(textApiUrl, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+                    const stylesText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                    const styles = JSON.parse(stylesText);
+
+                    if (Array.isArray(styles)) {
+                        styleSuggestionSection.classList.remove('hidden');
+                        styles.forEach(style => {
+                            const button = document.createElement('button');
+                            button.textContent = style;
+                            button.className = "bg-indigo-100 text-indigo-700 font-medium py-2 px-4 rounded-full text-sm hover:bg-indigo-200 transition-colors";
+                            button.onclick = async () => {
+                                indonesianPromptTextarea.value += `, dengan gaya ${style}`;
+                                const newEnText = await translatePrompt(indonesianPromptTextarea.value, 'id', 'en');
+                                englishPromptTextarea.value = newEnText;
+                            };
+                            styleButtons.appendChild(button);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Failed to get style suggestions:', error);
+                }
+            };
+            
+            const updateTextareas = () => {
+                const type = promptTypeSelect.value;
+                englishPromptTextarea.value = originalPrompts[type].en;
+                indonesianPromptTextarea.value = originalPrompts[type].id;
+            };
+
+            imageUploadInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        imagePreview.src = e.target.result;
+                        imagePreviewContainer.classList.remove('hidden');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            generateButton.addEventListener('click', async () => {
+                const mainFile = imageUploadInput.files[0];
+                if (!mainFile) {
+                    statusMessage.textContent = 'Silakan unggah gambar terlebih dahulu.';
+                    statusMessage.className = 'mt-4 text-center text-red-500 font-semibold'; statusMessage.classList.remove('hidden'); return;
+                }
+                generateButton.disabled = true; buttonText.classList.add('hidden'); spinner.classList.remove('hidden'); buttonIcon.classList.add('hidden');
+                statusMessage.textContent = 'Menganalisis gambar...';
+                statusMessage.className = 'mt-4 text-center text-slate-600'; statusMessage.classList.remove('hidden');
+                outputSection.classList.add('hidden');
+                
+                try {
+                    const base64Data = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result.split(',')[1]);
+                        reader.onerror = reject; reader.readAsDataURL(mainFile);
+                    });
+                    
+                    const [detailedEn, shortEn] = await Promise.all([ createDetailedPrompt(base64Data, mainFile.type), createShortPrompt(base64Data, mainFile.type) ]);
+                    if (detailedEn && shortEn) {
+                        const [detailedId, shortId] = await Promise.all([ translatePrompt(detailedEn, 'en', 'id'), translatePrompt(shortEn, 'en', 'id') ]);
+                        originalPrompts.detailed = { en: detailedEn, id: detailedId };
+                        originalPrompts.short = { en: shortEn, id: shortId };
+                        updateTextareas();
+                        outputSection.classList.remove('hidden');
+                        statusMessage.textContent = 'Prompt berhasil dibuat!';
+                        statusMessage.className = 'mt-4 text-center text-green-600 font-semibold';
+                        getStyleSuggestions(detailedEn);
+                    } else { throw new Error('API tidak menghasilkan prompt.'); }
+                } catch (error) {
+                    console.error('Error:', error);
+                    statusMessage.textContent = `Gagal membuat prompt: ${error.message}`;
+                    statusMessage.className = 'mt-4 text-center text-red-500 font-semibold';
+                } finally {
+                    generateButton.disabled = false; buttonText.classList.remove('hidden'); spinner.classList.add('hidden'); buttonIcon.classList.remove('hidden');
+                }
+            });
+
+            promptTypeSelect.addEventListener('change', updateTextareas);
+
+            translateButton.addEventListener('click', async () => {
+                const idText = indonesianPromptTextarea.value; if (idText.trim() === '') return;
+                translateButton.disabled = true;
+                const enText = await translatePrompt(idText, 'id', 'en');
+                englishPromptTextarea.value = enText; translateButton.disabled = false;
+            });
+            
+            updatePromptButton.addEventListener('click', async () => {
+                const gender = genderSelect.value;
+                const hair = hairInput.value;
+                const clothing = clothingInput.value;
+                const pants = pantsInput.value;
+                const shoes = shoesInput.value;
+                const accessories = accessoriesInput.value;
+                const facialReferenceChecked = facialReferenceCheckbox.checked;
+
+                if (!gender && !hair && !clothing && !pants && !shoes && !accessories && !facialReferenceChecked) {
+                    statusMessage.textContent = 'Isi setidaknya satu bidang untuk memperbarui prompt.';
+                    statusMessage.className = 'mt-4 text-center text-red-500 font-semibold'; return;
+                }
+                updatePromptButton.disabled = true; statusMessage.textContent = 'Memperbarui prompt...';
+
+                const modifications = [
+                    gender ? `Jenis kelamin: ${gender}` : '', hair ? `Gaya rambut: ${hair}` : '',
+                    clothing ? `Pakaian: ${clothing}` : '', pants ? `Celana: ${pants}` : '',
+                    shoes ? `Sepatu: ${shoes}` : '', accessories ? `Aksesori: ${accessories}` : '',
+                    facialReferenceChecked ? `Referensi wajah: pertahankan detail wajah dan tekstur kulit.` : ''
+                ].filter(Boolean).join(', ');
+
+                const systemPrompt = `You are an expert image prompt editor. Rewrite the current prompt to incorporate the requested changes. Keep the new prompt coherent and natural. Output only the updated prompt in Indonesian.\n\nCurrent Prompt: "${indonesianPromptTextarea.value}"\n\nRequested Changes: "${modifications}"`;
+                
+                try {
+                    const payload = { contents: [{ parts: [{ text: systemPrompt }] }], generationConfig: { responseMimeType: "text/plain" } };
+                    const response = await fetchWithBackoff(textApiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    const result = await response.json();
+                    const newIdText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (newIdText) {
+                        indonesianPromptTextarea.value = newIdText;
+                        const newEnText = await translatePrompt(newIdText, 'id', 'en');
+                        englishPromptTextarea.value = newEnText;
+                        statusMessage.textContent = 'Prompt berhasil diperbarui!'; statusMessage.className = 'mt-4 text-center text-green-600 font-semibold';
+                    } else { throw new Error('API tidak mengembalikan prompt yang valid.'); }
+                } catch (error) {
+                    console.error('Error updating prompt:', error); statusMessage.textContent = `Gagal memperbarui prompt: ${error.message}`;
+                } finally { updatePromptButton.disabled = false; }
+            });
+
+            generateNegativePromptButton.addEventListener('click', async () => {
+                const positivePrompt = englishPromptTextarea.value;
+                if (!positivePrompt) { statusMessage.textContent = 'Buat prompt utama terlebih dahulu.'; return; }
+                generateNegativePromptButton.disabled = true; generateNegativePromptButton.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Membuat...`;
+                const systemPrompt = `Based on the positive prompt, create a concise, effective negative prompt in English. A negative prompt describes what you don't want. Include common terms like 'ugly, tiling, poorly drawn hands, poorly drawn feet, poorly drawn face, out of frame, extra limbs, disfigured, deformed, body out of frame, blurry, bad anatomy, blurred, watermark, grainy, signature, cut off, draft'. Generate a relevant negative prompt.\n\nPositive prompt: "${positivePrompt}"`;
+                try {
+                     const payload = { contents: [{ parts: [{ text: systemPrompt }] }], generationConfig: { responseMimeType: "text/plain" } };
+                    const response = await fetchWithBackoff(textApiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    const result = await response.json();
+                    const negEn = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (negEn) { englishNegativePromptTextarea.value = negEn; }
+                } catch (error) { console.error('Error generating negative prompt:', error);
+                } finally { generateNegativePromptButton.disabled = false; generateNegativePromptButton.innerHTML = `✨ Buat Saran`; }
+            });
+
+            generateImageButton.addEventListener('click', async () => {
+                const prompt = englishPromptTextarea.value;
+                if (!prompt) { statusMessage.textContent = 'Tidak ada prompt untuk membuat gambar.'; return; }
+                imageModal.classList.remove('hidden'); modalSpinner.classList.remove('hidden'); generatedImage.classList.add('hidden');
+                generateImageButton.disabled = true; generateImageButtonText.classList.add('hidden'); generateImageSpinner.classList.remove('hidden');
+
+                try {
+                    const fullPrompt = `${prompt}. Negative prompt: ${englishNegativePromptTextarea.value || ' '}`;
+                    const payload = { instances: [{ prompt: fullPrompt }], parameters: { "sampleCount": 1 } };
+                    const response = await fetchWithBackoff(imageApiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    const result = await response.json();
+                    if (result.predictions && result.predictions[0]?.bytesBase64Encoded) {
+                        generatedImage.src = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
+                        modalSpinner.classList.add('hidden'); generatedImage.classList.remove('hidden');
+                    } else { throw new Error(result.error?.message || 'Gagal membuat gambar.'); }
+                } catch (error) {
+                    console.error('Image generation error:', error);
+                    modalSpinner.classList.add('hidden'); imageModal.classList.add('hidden');
+                    statusMessage.textContent = `Error: ${error.message}`;
+                    statusMessage.className = 'mt-4 text-center text-red-500 font-semibold';
+                } finally {
+                    generateImageButton.disabled = false; generateImageButtonText.classList.remove('hidden'); generateImageSpinner.classList.add('hidden');
+                }
+            });
+
+            closeModalButton.addEventListener('click', () => imageModal.classList.add('hidden'));
+            imageModal.addEventListener('click', (e) => { if(e.target === imageModal) imageModal.classList.add('hidden'); });
+
+            const copyText = (element, button) => {
+                const textToCopy = element.value;
+                if(!textToCopy) return;
+                try {
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        const originalHTML = button.innerHTML;
+                        button.innerHTML = `<i class="fas fa-check"></i>Disalin!`;
+                        setTimeout(() => { button.innerHTML = originalHTML; }, 2000);
+                    });
+                } catch (err) { console.error('Gagal menyalin:', err); }
+            };
+
+            copyEnButton.addEventListener('click', () => copyText(englishPromptTextarea, copyEnButton));
+            copyIdButton.addEventListener('click', () => copyText(indonesianPromptTextarea, copyIdButton));
+        });
+    </script>
+</body>
+</html>
+
+
