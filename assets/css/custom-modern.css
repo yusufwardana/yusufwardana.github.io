@@ -1,0 +1,134 @@
+/* Modern portfolio overrides */
+:root {
+  --orange-yellow-crayola: hsl(42, 100%, 62%);
+  --vegas-gold: hsl(38, 67%, 52%);
+  --smoky-black: hsl(220, 28%, 6%);
+  --eerie-black-1: hsl(222, 24%, 10%);
+  --eerie-black-2: hsl(222, 22%, 8%);
+  --onyx: hsl(222, 17%, 16%);
+  --jet: hsl(222, 15%, 22%);
+  --text-gradient-yellow: linear-gradient(135deg, hsl(42, 100%, 64%), hsl(28, 95%, 55%));
+  --bg-gradient-onyx: linear-gradient(145deg, hsla(222, 18%, 22%, 0.95), hsla(222, 20%, 11%, 0.95));
+  --bg-gradient-jet: linear-gradient(145deg, hsla(222, 18%, 16%, 0.9), hsla(222, 26%, 9%, 0.96));
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, hsla(42, 100%, 62%, 0.14), transparent 32%),
+    radial-gradient(circle at bottom right, hsla(205, 94%, 55%, 0.12), transparent 34%),
+    var(--smoky-black);
+}
+
+.sidebar,
+article {
+  border-color: hsla(42, 100%, 62%, 0.16);
+  backdrop-filter: blur(18px);
+}
+
+.avatar-box {
+  padding: 4px;
+  background: var(--text-gradient-yellow);
+  box-shadow: 0 16px 40px hsla(42, 100%, 55%, 0.16);
+}
+
+.avatar-box img {
+  border-radius: 16px;
+}
+
+.info-content .name {
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+.info-content .title {
+  background: hsla(42, 100%, 62%, 0.12);
+  color: var(--orange-yellow-crayola);
+  border: 1px solid hsla(42, 100%, 62%, 0.18);
+  font-weight: 500;
+}
+
+.navbar {
+  border: 1px solid hsla(42, 100%, 62%, 0.1);
+  background: hsla(222, 24%, 8%, 0.82);
+  backdrop-filter: blur(18px);
+}
+
+.navbar-link {
+  font-weight: 500;
+}
+
+.navbar-link.active {
+  color: var(--orange-yellow-crayola);
+}
+
+.article-title::after {
+  width: 52px;
+  height: 4px;
+}
+
+.about-text p,
+.service-item-text,
+.timeline-text,
+.blog-text,
+.project-category,
+.contact-info :is(.contact-link, time, address) {
+  line-height: 1.75;
+}
+
+.service-item,
+.project-item > a,
+.blog-post-item > a,
+.content-card {
+  transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+}
+
+.service-item:hover,
+.project-item > a:hover,
+.blog-post-item > a:hover,
+.content-card:hover {
+  transform: translateY(-4px);
+}
+
+.service-item {
+  border: 1px solid hsla(42, 100%, 62%, 0.08);
+}
+
+.service-item:hover {
+  border-color: hsla(42, 100%, 62%, 0.22);
+  box-shadow: 0 18px 45px hsla(0, 0%, 0%, 0.22);
+}
+
+.icon-box {
+  border: 1px solid hsla(42, 100%, 62%, 0.12);
+}
+
+.social-link:hover,
+.contact-link:hover {
+  color: var(--orange-yellow-crayola);
+}
+
+.form-btn {
+  background: var(--text-gradient-yellow);
+  color: hsl(222, 28%, 8%);
+  font-weight: 600;
+}
+
+.form-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (min-width: 1024px) {
+  main {
+    max-width: 1180px;
+  }
+
+  .sidebar {
+    border-radius: 28px;
+  }
+
+  article {
+    border-radius: 28px;
+  }
+}
